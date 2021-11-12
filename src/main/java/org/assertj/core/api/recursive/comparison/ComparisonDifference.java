@@ -12,19 +12,19 @@
  */
 package org.assertj.core.api.recursive.comparison;
 
-import static java.lang.String.format;
-import static java.lang.String.join;
-import static java.util.Collections.unmodifiableList;
-import static java.util.Objects.requireNonNull;
-import static org.assertj.core.api.recursive.comparison.DualValue.rootDualValue;
+import org.assertj.core.configuration.ConfigurationProvider;
+import org.assertj.core.internal.UnambiguousRepresentation;
+import org.assertj.core.presentation.Representation;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.assertj.core.configuration.ConfigurationProvider;
-import org.assertj.core.internal.UnambiguousRepresentation;
-import org.assertj.core.presentation.Representation;
+import static java.lang.String.format;
+import static java.lang.String.join;
+import static java.util.Collections.unmodifiableList;
+import static java.util.Objects.requireNonNull;
+import static org.assertj.core.api.recursive.comparison.DualValue.rootDualValue;
 
 public class ComparisonDifference implements Comparable<ComparisonDifference> {
 
@@ -38,33 +38,45 @@ public class ComparisonDifference implements Comparable<ComparisonDifference> {
   private static final String FIELD = "field/property '%s'";
   private static final String TOP_LEVEL_OBJECTS = "Top level actual and expected objects";
   private static final String TOP_LEVEL_ELEMENTS = "Top level actual and expected objects element at index %s";
-  static final String TEMPLATE = "%s differ:%n" +
-                                 "- actual value  : %s%n" +
-                                 "- expected value: %s%s";
+
+  public static final String DEFAULT_TEMPLATE = "%s differ:%n" +
+                                                "- actual value  : %s%n" +
+                                                "- expected value: %s%s";
 
   final List<String> decomposedPath;
   final String concatenatedPath;
   final Object actual;
   final Object expected;
   final Optional<String> additionalInformation;
+  final String template;
 
   public ComparisonDifference(DualValue dualValue) {
-    this(dualValue.getDecomposedPath(), dualValue.actual, dualValue.expected, null);
+    this(dualValue.getDecomposedPath(), dualValue.actual, dualValue.expected, null, DEFAULT_TEMPLATE);
   }
 
   public ComparisonDifference(DualValue dualValue, String additionalInformation) {
-    this(dualValue.getDecomposedPath(), dualValue.actual, dualValue.expected, additionalInformation);
+    this(dualValue.getDecomposedPath(), dualValue.actual, dualValue.expected, additionalInformation, DEFAULT_TEMPLATE);
   }
 
-  private ComparisonDifference(List<String> decomposedPath, Object actual, Object other, String additionalInformation) {
+  public ComparisonDifference(DualValue dualValue, String additionalInformation, String template) {
+    this(dualValue.getDecomposedPath(), dualValue.actual, dualValue.expected, additionalInformation, template);
+  }
+
+  private ComparisonDifference(List<String> decomposedPath,
+                               Object actual,
+                               Object other,
+                               String additionalInformation,
+                               String template) {
     this.decomposedPath = unmodifiableList(requireNonNull(decomposedPath, "a path can't be null"));
     this.concatenatedPath = toConcatenatedPath(decomposedPath);
     this.actual = actual;
     this.expected = other;
     this.additionalInformation = Optional.ofNullable(additionalInformation);
+    this.template = template != null ? template : DEFAULT_TEMPLATE;
   }
 
-  public static ComparisonDifference rootComparisonDifference(Object actual, Object other, String additionalInformation) {
+  public static ComparisonDifference rootComparisonDifference(Object actual, Object other,
+                                                              String additionalInformation) {
     return new ComparisonDifference(rootDualValue(actual, other), additionalInformation);
   }
 
@@ -76,6 +88,10 @@ public class ComparisonDifference implements Comparable<ComparisonDifference> {
     return expected;
   }
 
+  public String getTemplate() {
+    return template;
+  }
+
   public Optional<String> getAdditionalInformation() {
     return additionalInformation;
   }
@@ -83,10 +99,10 @@ public class ComparisonDifference implements Comparable<ComparisonDifference> {
   @Override
   public String toString() {
     return additionalInformation.isPresent()
-        ? format("ComparisonDifference [path=%s, actual=%s, expected=%s, additionalInformation=%s]",
-                 concatenatedPath, actual, expected, additionalInformation.get())
-        : format("ComparisonDifference [path=%s, actual=%s, expected=%s]",
-                 concatenatedPath, actual, expected);
+        ? format("ComparisonDifference [path=%s, actual=%s, expected=%s, template=%s, additionalInformation=%s]",
+                 concatenatedPath, actual, expected, template, additionalInformation.get())
+        : format("ComparisonDifference [path=%s, actual=%s, template=%s, expected=%s]",
+                 concatenatedPath, actual, template, expected);
   }
 
   public String multiLineDescription() {
@@ -95,20 +111,23 @@ public class ComparisonDifference implements Comparable<ComparisonDifference> {
   }
 
   public String multiLineDescription(Representation representation) {
-    UnambiguousRepresentation unambiguousRepresentation = new UnambiguousRepresentation(representation, actual, expected);
+    UnambiguousRepresentation unambiguousRepresentation = new UnambiguousRepresentation(representation, actual,
+                                                                                        expected);
     String additionalInfo = additionalInformation.map(ComparisonDifference::formatOnNewline)
                                                  .orElse("");
-    return format(TEMPLATE,
+    return format(getTemplate(),
                   fieldPathDescription(),
                   unambiguousRepresentation.getActual(),
                   unambiguousRepresentation.getExpected(),
                   additionalInfo);
   }
 
-  // returns a user friendly path description
+  // returns a user-friendly path description
   protected String fieldPathDescription() {
-    if (concatenatedPath.isEmpty()) return TOP_LEVEL_OBJECTS;
-    if (concatenatedPath.matches(TOP_LEVEL_ELEMENT_PATTERN)) return format(TOP_LEVEL_ELEMENTS, extractIndex(concatenatedPath));
+    if (concatenatedPath.isEmpty()) {return TOP_LEVEL_OBJECTS;}
+    if (concatenatedPath.matches(TOP_LEVEL_ELEMENT_PATTERN)) {
+      return format(TOP_LEVEL_ELEMENTS, extractIndex(concatenatedPath));
+    }
     return format(FIELD, concatenatedPath);
   }
 
@@ -139,12 +158,13 @@ public class ComparisonDifference implements Comparable<ComparisonDifference> {
     return Objects.equals(concatenatedPath, castOther.concatenatedPath)
            && Objects.equals(actual, castOther.actual)
            && Objects.equals(expected, castOther.expected)
+           && Objects.equals(template, castOther.template)
            && Objects.equals(additionalInformation, castOther.additionalInformation);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(concatenatedPath, actual, expected, additionalInformation);
+    return Objects.hash(concatenatedPath, actual, expected, template, additionalInformation);
   }
 
   @Override

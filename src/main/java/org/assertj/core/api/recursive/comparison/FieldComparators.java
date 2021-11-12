@@ -12,8 +12,7 @@
  */
 package org.assertj.core.api.recursive.comparison;
 
-import static java.lang.String.format;
-import static org.assertj.core.util.Strings.join;
+import org.assertj.core.util.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -24,7 +23,8 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Stream;
 
-import org.assertj.core.util.VisibleForTesting;
+import static java.lang.String.format;
+import static org.assertj.core.util.Strings.join;
 
 /**
  * An internal holder of the comparators for fields described by their path without element index.
@@ -41,10 +41,10 @@ public class FieldComparators {
   }
 
   /**
-   * Puts the {@code comparator} for the given {@code clazz}.
+   * Puts the {@code comparator} for the given {@code fieldLocation}.
    *
    * @param fieldLocation the FieldLocation where to apply the comparator
-   * @param comparator the comparator it self
+   * @param comparator the comparator itself
    */
   public void registerComparator(String fieldLocation, Comparator<?> comparator) {
     fieldComparators.put(fieldLocation, comparator);
@@ -64,7 +64,8 @@ public class FieldComparators {
 
   @Override
   public boolean equals(Object obj) {
-    return obj instanceof FieldComparators && Objects.equals(fieldComparators, ((FieldComparators) obj).fieldComparators);
+    return obj instanceof FieldComparators && Objects.equals(fieldComparators,
+                                                             ((FieldComparators) obj).fieldComparators);
   }
 
   @Override
@@ -77,7 +78,7 @@ public class FieldComparators {
   }
 
   private static String formatRegisteredComparator(Entry<String, Comparator<?>> fieldComparator) {
-    return format("%s -> %s", fieldComparator, fieldComparator.getValue());
+    return format("%s -> %s", fieldComparator.getKey(), fieldComparator.getValue());
   }
 
   public boolean hasComparatorForField(String fieldLocation) {
@@ -92,5 +93,4 @@ public class FieldComparators {
   public Stream<Entry<String, Comparator<?>>> comparatorByFields() {
     return fieldComparators.entrySet().stream();
   }
-
 }

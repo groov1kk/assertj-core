@@ -13,9 +13,12 @@
 package org.assertj.core.util.introspection;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+
+import static java.util.Objects.requireNonNull;
 
 public class ClassUtils {
 
@@ -43,43 +46,81 @@ public class ClassUtils {
    * <p>
    * Gets a {@code List} of all interfaces implemented by the given class and its superclasses.
    * </p>
-   * 
+   *
    * <p>
    * The order is determined by looking through each interface in turn as declared in the source file and following its
    * hierarchy up. Then each superclass is considered in the same way. Later duplicates are ignored, so the order is
    * maintained.
    * </p>
-   * 
+   *
    * @param cls the class to look up, may be {@code null}
    * @return the {@code List} of interfaces in order, {@code null} if null input
    */
   public static List<Class<?>> getAllInterfaces(Class<?> cls) {
-    if (cls == null) return null;
-  
+    if (cls == null) {
+      return null;
+    }
+
     LinkedHashSet<Class<?>> interfacesFound = new LinkedHashSet<>();
     getAllInterfaces(cls, interfacesFound);
-  
+
     return new ArrayList<>(interfacesFound);
   }
 
   /**
    * Get the interfaces for the specified class.
-   * 
+   *
    * @param cls the class to look up, may be {@code null}
    * @param interfacesFound the {@code Set} of interfaces for the class
    */
   static void getAllInterfaces(Class<?> cls, HashSet<Class<?>> interfacesFound) {
     while (cls != null) {
       Class<?>[] interfaces = cls.getInterfaces();
-  
+
       for (Class<?> i : interfaces) {
         if (interfacesFound.add(i)) {
           getAllInterfaces(i, interfacesFound);
         }
       }
-  
+
       cls = cls.getSuperclass();
     }
   }
 
+  /**
+   * Returns the most relevant class for the given type from the giving collection of types.
+   * <p>
+   * The order of checks is the following:
+   * <ol>
+   * <li>If there is a registered message for {@code clazz} then this one is used</li>
+   * <li>We check if there is a registered message for a superclass of {@code clazz}</li>
+   * <li>We check if there is a registered message for an interface of {@code clazz}</li>
+   * </ol>
+   * If there is no relevant type in the giving collection - {@code null} will be returned.
+   *
+   * @param cls type to find a relevant class.
+   * @param collection collection of types where relevant type should be present.
+   * @return the most relevant class.
+   * @throws NullPointerException if collection is null.
+   */
+  public static Class<?> getRelevantClass(Class<?> cls, Collection<?> collection) {
+    requireNonNull(collection, "Expecting a non null collection");
+
+    if (collection.contains(cls)) {
+      return cls;
+    }
+
+    for (Class<?> superClass : getAllSuperclasses(cls)) {
+      if (collection.contains(superClass)) {
+        return superClass;
+      }
+    }
+
+    for (Class<?> interfaceClass : getAllInterfaces(cls)) {
+      if (collection.contains(interfaceClass)) {
+        return interfaceClass;
+      }
+    }
+    return null;
+  }
 }

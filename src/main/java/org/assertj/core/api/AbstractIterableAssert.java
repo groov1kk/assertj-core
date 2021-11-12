@@ -2242,7 +2242,7 @@ public abstract class AbstractIterableAssert<SELF extends AbstractIterableAssert
   @Deprecated
   @CheckReturnValue
   public <T> SELF usingComparatorForElementFieldsWithType(Comparator<T> comparator, Class<T> type) {
-    getComparatorsForElementPropertyOrFieldTypes().put(type, comparator);
+    getComparatorsForElementPropertyOrFieldTypes().registerComparator(type, comparator);
     return myself;
   }
 
@@ -2278,8 +2278,8 @@ public abstract class AbstractIterableAssert<SELF extends AbstractIterableAssert
       usingElementComparator(new ExtendedByTypesComparator(getComparatorsByType()));
     }
 
-    getComparatorsForElementPropertyOrFieldTypes().put(type, comparator);
-    getComparatorsByType().put(type, comparator);
+    getComparatorsForElementPropertyOrFieldTypes().registerComparator(type, comparator);
+    getComparatorsByType().registerComparator(type, comparator);
 
     return myself;
   }

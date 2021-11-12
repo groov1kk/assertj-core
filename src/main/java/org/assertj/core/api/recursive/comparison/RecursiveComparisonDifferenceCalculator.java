@@ -12,20 +12,7 @@
  */
 package org.assertj.core.api.recursive.comparison;
 
-import static java.lang.String.format;
-import static java.util.Objects.deepEquals;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toMap;
-import static org.assertj.core.api.recursive.comparison.ComparisonDifference.rootComparisonDifference;
-import static org.assertj.core.api.recursive.comparison.DualValue.DEFAULT_ORDERED_COLLECTION_TYPES;
-import static org.assertj.core.api.recursive.comparison.FieldLocation.rootFieldLocation;
-import static org.assertj.core.internal.Objects.getDeclaredFieldsIncludingInherited;
-import static org.assertj.core.internal.Objects.getFieldsNames;
-import static org.assertj.core.util.IterableUtil.sizeOf;
-import static org.assertj.core.util.IterableUtil.toCollection;
-import static org.assertj.core.util.Lists.list;
-import static org.assertj.core.util.Sets.newHashSet;
-import static org.assertj.core.util.introspection.PropertyOrFieldSupport.COMPARISON;
+import org.assertj.core.internal.DeepDifference;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -43,7 +30,20 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-import org.assertj.core.internal.DeepDifference;
+import static java.lang.String.format;
+import static java.util.Objects.deepEquals;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toMap;
+import static org.assertj.core.api.recursive.comparison.ComparisonDifference.rootComparisonDifference;
+import static org.assertj.core.api.recursive.comparison.DualValue.DEFAULT_ORDERED_COLLECTION_TYPES;
+import static org.assertj.core.api.recursive.comparison.FieldLocation.rootFieldLocation;
+import static org.assertj.core.internal.Objects.getDeclaredFieldsIncludingInherited;
+import static org.assertj.core.internal.Objects.getFieldsNames;
+import static org.assertj.core.util.IterableUtil.sizeOf;
+import static org.assertj.core.util.IterableUtil.toCollection;
+import static org.assertj.core.util.Lists.list;
+import static org.assertj.core.util.Sets.newHashSet;
+import static org.assertj.core.util.introspection.PropertyOrFieldSupport.COMPARISON;
 
 /**
  * Based on {@link DeepDifference} but takes a {@link RecursiveComparisonConfiguration}, {@link DeepDifference}
@@ -55,8 +55,9 @@ import org.assertj.core.internal.DeepDifference;
 public class RecursiveComparisonDifferenceCalculator {
 
   private static final String DIFFERENT_ACTUAL_AND_EXPECTED_FIELD_TYPES = "expected field is %s but actual field is not (%s)";
-  private static final String ACTUAL_NOT_ORDERED_COLLECTION = "expected field is an ordered collection but actual field is not (%s), ordered collections are: "
-                                                              + describeOrderedCollectionTypes();
+  private static final String ACTUAL_NOT_ORDERED_COLLECTION =
+      "expected field is an ordered collection but actual field is not (%s), ordered collections are: "
+      + describeOrderedCollectionTypes();
 
   private static final String VALUE_FIELD_NAME = "value";
   private static final String STRICT_TYPE_ERROR = "the fields are considered different since the comparison enforces strict type check and %s is not a subtype of %s";
@@ -79,11 +80,11 @@ public class RecursiveComparisonDifferenceCalculator {
     }
 
     void addDifference(DualValue dualValue) {
-      differences.add(new ComparisonDifference(dualValue));
+      differences.add(new ComparisonDifference(dualValue, null, getCustomErrorMessage(dualValue)));
     }
 
     void addDifference(DualValue dualValue, String description) {
-      differences.add(new ComparisonDifference(dualValue, description));
+      differences.add(new ComparisonDifference(dualValue, description, getCustomErrorMessage(dualValue)));
     }
 
     void addKeyDifference(DualValue parentDualValue, Object actualKey, Object expectedKey) {
@@ -110,15 +111,17 @@ public class RecursiveComparisonDifferenceCalculator {
     }
 
     private void registerForComparison(DualValue dualValue) {
-      if (!visitedDualValues.contains(dualValue)) dualValuesToCompare.addFirst(dualValue);
+      if (!visitedDualValues.contains(dualValue)) {dualValuesToCompare.addFirst(dualValue);}
     }
 
-    private void initDualValuesToCompare(Object actual, Object expected, FieldLocation fieldLocation, boolean isRootObject) {
+    private void initDualValuesToCompare(Object actual, Object expected, FieldLocation fieldLocation,
+                                         boolean isRootObject) {
       DualValue dualValue = new DualValue(fieldLocation, actual, expected);
       boolean mustCompareFieldsRecursively = mustCompareFieldsRecursively(isRootObject, dualValue);
       if (dualValue.hasNoNullValues() && dualValue.hasNoContainerValues() && mustCompareFieldsRecursively) {
         // disregard the equals method and start comparing fields
-        Set<String> nonIgnoredActualFieldsNames = recursiveComparisonConfiguration.getNonIgnoredActualFieldNames(dualValue);
+        Set<String> nonIgnoredActualFieldsNames = recursiveComparisonConfiguration.getNonIgnoredActualFieldNames(
+            dualValue);
         if (!nonIgnoredActualFieldsNames.isEmpty()) {
           // fields to ignore are evaluated when adding their corresponding dualValues to dualValuesToCompare which filters
           // ignored fields according to recursiveComparisonConfiguration
@@ -146,17 +149,34 @@ public class RecursiveComparisonDifferenceCalculator {
       // --
       // remove visited values one by one, DualValue.equals correctly compare respective actual and expected fields by reference
       visitedDualValues.forEach(visitedDualValue -> dualValuesToCompare.stream()
-                                                                       .filter(dualValueToCompare -> dualValueToCompare.equals(visitedDualValue))
+                                                                       .filter(
+                                                                           dualValueToCompare -> dualValueToCompare.equals(
+                                                                               visitedDualValue))
                                                                        .findFirst()
                                                                        .ifPresent(dualValuesToCompare::remove));
     }
 
     private boolean mustCompareFieldsRecursively(boolean isRootObject, DualValue dualValue) {
       boolean noCustomComparisonForDualValue = !recursiveComparisonConfiguration.hasCustomComparator(dualValue)
-                                               && !shouldHonorOverriddenEquals(dualValue, recursiveComparisonConfiguration);
+                                               && !shouldHonorOverriddenEquals(dualValue,
+                                                                               recursiveComparisonConfiguration);
       return isRootObject || noCustomComparisonForDualValue;
     }
 
+    private String getCustomErrorMessage(DualValue dualValue) {
+      String fieldName = dualValue.getConcatenatedPath();
+
+      if (recursiveComparisonConfiguration.hasCustomMessageForField(fieldName)) {
+        return recursiveComparisonConfiguration.getMessageForField(fieldName);
+      }
+
+      Class<?> fieldType = dualValue.actual != null ? dualValue.actual.getClass() : dualValue.expected.getClass();
+      if (recursiveComparisonConfiguration.hasCustomMessageForType(fieldType)) {
+        return recursiveComparisonConfiguration.getMessageForType(fieldType);
+      }
+
+      return null;
+    }
   }
 
   /**
@@ -182,7 +202,8 @@ public class RecursiveComparisonDifferenceCalculator {
    */
   public List<ComparisonDifference> determineDifferences(Object actual, Object expected,
                                                          RecursiveComparisonConfiguration recursiveComparisonConfiguration) {
-    if (recursiveComparisonConfiguration.isInStrictTypeCheckingMode() && expectedTypeIsNotSubtypeOfActualType(actual, expected)) {
+    if (recursiveComparisonConfiguration.isInStrictTypeCheckingMode() && expectedTypeIsNotSubtypeOfActualType(actual,
+                                                                                                              expected)) {
       return list(expectedAndActualTypeDifference(actual, expected));
     }
     List<DualValue> visited = list();
@@ -191,7 +212,8 @@ public class RecursiveComparisonDifferenceCalculator {
 
   // TODO keep track of ignored fields in an RecursiveComparisonExecution class ?
 
-  private static List<ComparisonDifference> determineDifferences(Object actual, Object expected, FieldLocation fieldLocation,
+  private static List<ComparisonDifference> determineDifferences(Object actual, Object expected,
+                                                                 FieldLocation fieldLocation,
                                                                  boolean isRootObject, List<DualValue> visited,
                                                                  RecursiveComparisonConfiguration recursiveComparisonConfiguration) {
     ComparisonState comparisonState = new ComparisonState(visited, recursiveComparisonConfiguration);
@@ -205,12 +227,14 @@ public class RecursiveComparisonDifferenceCalculator {
 
       // Custom comparators take precedence over all other types of comparison
       if (recursiveComparisonConfiguration.hasCustomComparator(dualValue)) {
-        if (!propertyOrFieldValuesAreEqual(dualValue, recursiveComparisonConfiguration)) comparisonState.addDifference(dualValue);
+        if (!propertyOrFieldValuesAreEqual(dualValue, recursiveComparisonConfiguration)) {
+          comparisonState.addDifference(dualValue);
+        }
         // since we used a custom comparator we don't need to inspect the nested fields any further
         continue;
       }
 
-      if (actualFieldValue == expectedFieldValue) continue;
+      if (actualFieldValue == expectedFieldValue) {continue;}
 
       if (actualFieldValue == null || expectedFieldValue == null) {
         // one of the value is null while the other is not as we already know that actualFieldValue != expectedFieldValue
@@ -261,19 +285,22 @@ public class RecursiveComparisonDifferenceCalculator {
       }
 
       if (shouldCompareDualValue(recursiveComparisonConfiguration, dualValue)) {
-        if (!actualFieldValue.equals(expectedFieldValue)) comparisonState.addDifference(dualValue);
+        if (!actualFieldValue.equals(expectedFieldValue)) {comparisonState.addDifference(dualValue);}
         continue;
       }
 
       Class<?> actualFieldValueClass = actualFieldValue.getClass();
       Class<?> expectedFieldClass = expectedFieldValue.getClass();
-      if (recursiveComparisonConfiguration.isInStrictTypeCheckingMode() && expectedTypeIsNotSubtypeOfActualType(dualValue)) {
+      if (recursiveComparisonConfiguration.isInStrictTypeCheckingMode() && expectedTypeIsNotSubtypeOfActualType(
+          dualValue)) {
         comparisonState.addDifference(dualValue,
-                                      format(STRICT_TYPE_ERROR, expectedFieldClass.getName(), actualFieldValueClass.getName()));
+                                      format(STRICT_TYPE_ERROR, expectedFieldClass.getName(),
+                                             actualFieldValueClass.getName()));
         continue;
       }
 
-      Set<String> actualNonIgnoredFieldsNames = recursiveComparisonConfiguration.getNonIgnoredActualFieldNames(dualValue);
+      Set<String> actualNonIgnoredFieldsNames = recursiveComparisonConfiguration.getNonIgnoredActualFieldNames(
+          dualValue);
       Set<String> expectedFieldsNames = getFieldsNames(expectedFieldClass);
       // Check if expected has more fields than actual, in that case the additional fields are reported as difference
       if (!expectedFieldsNames.containsAll(actualNonIgnoredFieldsNames)) {
@@ -284,7 +311,8 @@ public class RecursiveComparisonDifferenceCalculator {
         String expectedClassName = expectedFieldClass.getName();
         String actualClassName = actualFieldValueClass.getName();
         String missingFieldsDescription = format(MISSING_FIELDS, actualClassName, expectedClassName,
-                                                 expectedFieldClass.getSimpleName(), actualFieldValueClass.getSimpleName(),
+                                                 expectedFieldClass.getSimpleName(),
+                                                 actualFieldValueClass.getSimpleName(),
                                                  missingFields);
         comparisonState.addDifference(dualValue, missingFieldsDescription);
       } else { // TODO remove else to report more diff
@@ -316,7 +344,7 @@ public class RecursiveComparisonDifferenceCalculator {
                                      RecursiveComparisonConfiguration recursiveComparisonConfiguration) {
     if (recursiveComparisonConfiguration.isInStrictTypeCheckingMode()) {
       // we can use == for comparison which checks both actual and expected values and types are the same
-      if (dualValue.actual != dualValue.expected) comparisonState.addDifference(dualValue);
+      if (dualValue.actual != dualValue.expected) {comparisonState.addDifference(dualValue);}
       return;
     }
     if (!dualValue.isActualAnEnum()) {
@@ -327,13 +355,15 @@ public class RecursiveComparisonDifferenceCalculator {
     Enum<?> actualEnum = (Enum<?>) dualValue.actual;
     Enum<?> expectedEnum = (Enum<?>) dualValue.expected;
     // we must only compare actual and expected enum by value but not by type
-    if (!actualEnum.name().equals(expectedEnum.name())) comparisonState.addDifference(dualValue);
+    if (!actualEnum.name().equals(expectedEnum.name())) {comparisonState.addDifference(dualValue);}
   }
 
   private static boolean shouldHonorOverriddenEquals(DualValue dualValue,
                                                      RecursiveComparisonConfiguration recursiveComparisonConfiguration) {
-    boolean shouldNotIgnoreOverriddenEqualsIfAny = !recursiveComparisonConfiguration.shouldIgnoreOverriddenEqualsOf(dualValue);
-    return shouldNotIgnoreOverriddenEqualsIfAny && dualValue.actual != null && hasOverriddenEquals(dualValue.actual.getClass());
+    boolean shouldNotIgnoreOverriddenEqualsIfAny = !recursiveComparisonConfiguration.shouldIgnoreOverriddenEqualsOf(
+        dualValue);
+    return shouldNotIgnoreOverriddenEqualsIfAny && dualValue.actual != null && hasOverriddenEquals(
+        dualValue.actual.getClass());
   }
 
   private static void compareArrays(DualValue dualValue, ComparisonState comparisonState) {
@@ -347,7 +377,8 @@ public class RecursiveComparisonDifferenceCalculator {
     int actualArrayLength = Array.getLength(dualValue.actual);
     int expectedArrayLength = Array.getLength(dualValue.expected);
     if (actualArrayLength != expectedArrayLength) {
-      comparisonState.addDifference(dualValue, format(DIFFERENT_SIZE_ERROR, "arrays", actualArrayLength, expectedArrayLength));
+      comparisonState.addDifference(dualValue,
+                                    format(DIFFERENT_SIZE_ERROR, "arrays", actualArrayLength, expectedArrayLength));
       // no need to inspect elements, arrays are not equal as they don't have the same size
       return;
     }
@@ -368,7 +399,8 @@ public class RecursiveComparisonDifferenceCalculator {
     if (!dualValue.isActualFieldAnOrderedCollection()) {
       // at the moment if expected is an ordered collection then actual should also be one
       comparisonState.addDifference(dualValue,
-                                    format(ACTUAL_NOT_ORDERED_COLLECTION, dualValue.actual.getClass().getCanonicalName()));
+                                    format(ACTUAL_NOT_ORDERED_COLLECTION,
+                                           dualValue.actual.getClass().getCanonicalName()));
       return;
     }
 
@@ -424,7 +456,8 @@ public class RecursiveComparisonDifferenceCalculator {
       while (expectedIterator.hasNext()) {
         Object expectedElement = expectedIterator.next();
         // we need to get the currently visited dual values otherwise a cycle would cause an infinite recursion.
-        List<ComparisonDifference> differences = determineDifferences(actualElement, expectedElement, dualValue.fieldLocation,
+        List<ComparisonDifference> differences = determineDifferences(actualElement, expectedElement,
+                                                                      dualValue.fieldLocation,
                                                                       false, comparisonState.visitedDualValues,
                                                                       comparisonState.recursiveComparisonConfiguration);
         if (differences.isEmpty()) {
@@ -435,7 +468,7 @@ public class RecursiveComparisonDifferenceCalculator {
           break;
         }
       }
-      if (!actualElementMatched) unmatchedActualElements.add(actualElement);
+      if (!actualElementMatched) {unmatchedActualElements.add(actualElement);}
     }
 
     if (!unmatchedActualElements.isEmpty()) {
@@ -457,7 +490,8 @@ public class RecursiveComparisonDifferenceCalculator {
     @SuppressWarnings("unchecked")
     Map<K, V> expectedMap = (Map<K, V>) dualValue.expected;
     if (actualMap.size() != expectedMap.size()) {
-      comparisonState.addDifference(dualValue, format(DIFFERENT_SIZE_ERROR, "sorted maps", actualMap.size(), expectedMap.size()));
+      comparisonState.addDifference(dualValue,
+                                    format(DIFFERENT_SIZE_ERROR, "sorted maps", actualMap.size(), expectedMap.size()));
       // no need to inspect entries, maps are not equal as they don't have the same size
       return;
       // TODO instead we could register the diff between expected and actual that is:
@@ -474,7 +508,8 @@ public class RecursiveComparisonDifferenceCalculator {
       } else {
         // as the key/field match we can simply compare field/key values
         FieldLocation keyFieldLocation = keyFieldLocation(dualValue.fieldLocation, actualEntry.getKey());
-        comparisonState.registerForComparison(new DualValue(keyFieldLocation, actualEntry.getValue(), expectedEntry.getValue()));
+        comparisonState.registerForComparison(
+            new DualValue(keyFieldLocation, actualEntry.getValue(), expectedEntry.getValue()));
       }
     }
   }
@@ -488,7 +523,8 @@ public class RecursiveComparisonDifferenceCalculator {
     Map<?, ?> actualMap = (Map<?, ?>) dualValue.actual;
     Map<?, ?> expectedMap = (Map<?, ?>) dualValue.expected;
     if (actualMap.size() != expectedMap.size()) {
-      comparisonState.addDifference(dualValue, format(DIFFERENT_SIZE_ERROR, "maps", actualMap.size(), expectedMap.size()));
+      comparisonState.addDifference(dualValue,
+                                    format(DIFFERENT_SIZE_ERROR, "maps", actualMap.size(), expectedMap.size()));
       // no need to inspect entries, maps are not equal as they don't have the same size
       return;
       // TODO instead we could register the diff between expected and actual that is:
@@ -498,12 +534,16 @@ public class RecursiveComparisonDifferenceCalculator {
 
     // index expected entries by their key deep hash code
     Map<Integer, Map.Entry<?, ?>> expectedEntriesByDeepHashCode = expectedMap.entrySet().stream()
-                                                                             .collect(toMap(entry -> deepHashCode(entry.getKey()),
-                                                                                            entry -> entry));
+                                                                             .collect(toMap(
+                                                                                 entry -> deepHashCode(entry.getKey()),
+                                                                                 entry -> entry));
     // index actual keys by their deep hash code
-    Map<?, Integer> actualDeepHashCodesByKey = actualMap.keySet().stream().collect(toMap(key -> key, key -> deepHashCode(key)));
+    Map<?, Integer> actualDeepHashCodesByKey = actualMap.keySet().stream()
+                                                        .collect(toMap(key -> key, key -> deepHashCode(key)));
     Map<?, ?> unmatchedActualEntries = actualDeepHashCodesByKey.entrySet().stream()
-                                                               .filter(entry -> !expectedEntriesByDeepHashCode.containsKey(entry.getValue()))
+                                                               .filter(
+                                                                   entry -> !expectedEntriesByDeepHashCode.containsKey(
+                                                                       entry.getValue()))
                                                                // back to actual entries
                                                                .collect(toMap(entry -> entry.getKey(),
                                                                               entry -> actualMap.get(entry.getKey())));
@@ -519,7 +559,8 @@ public class RecursiveComparisonDifferenceCalculator {
       Map.Entry<?, ?> expectedEntry = expectedEntriesByDeepHashCode.get(deepHashCode);
       // since we have found an entry in expected with the actual entry key, we just need to compare entry values.
       FieldLocation keyFieldLocation = keyFieldLocation(dualValue.fieldLocation, actualEntry.getKey());
-      comparisonState.registerForComparison(new DualValue(keyFieldLocation, actualEntry.getValue(), expectedEntry.getValue()));
+      comparisonState.registerForComparison(
+          new DualValue(keyFieldLocation, actualEntry.getValue(), expectedEntry.getValue()));
     }
   }
 
@@ -539,12 +580,15 @@ public class RecursiveComparisonDifferenceCalculator {
       return;
     }
     // either both are empty or present
-    if (!actual.isPresent()) return; // both optional are empty => end of the comparison
+    if (!actual.isPresent()) {
+      return; // both optional are empty => end of the comparison
+    }
     // both are present, we have to compare their values recursively
     Object value1 = actual.get();
     Object value2 = expected.get();
     // we add VALUE_FIELD_NAME to the path since we register Optional.value fields.
-    comparisonState.registerForComparison(new DualValue(dualValue.fieldLocation.field(VALUE_FIELD_NAME), value1, value2));
+    comparisonState.registerForComparison(
+        new DualValue(dualValue.fieldLocation.field(VALUE_FIELD_NAME), value1, value2));
   }
 
   /**
@@ -681,18 +725,19 @@ public class RecursiveComparisonDifferenceCalculator {
     final Object expectedFieldValue = dualValue.expected;
     // check field comparators as they take precedence over type comparators
     Comparator fieldComparator = recursiveComparisonConfiguration.getComparatorForField(fieldName);
-    if (fieldComparator != null) return fieldComparator.compare(actualFieldValue, expectedFieldValue) == 0;
+    if (fieldComparator != null) {return fieldComparator.compare(actualFieldValue, expectedFieldValue) == 0;}
     // check if a type comparators exist for the field type
     Class fieldType = actualFieldValue != null ? actualFieldValue.getClass() : expectedFieldValue.getClass();
     Comparator typeComparator = recursiveComparisonConfiguration.getComparatorForType(fieldType);
-    if (typeComparator != null) return typeComparator.compare(actualFieldValue, expectedFieldValue) == 0;
+    if (typeComparator != null) {return typeComparator.compare(actualFieldValue, expectedFieldValue) == 0;}
     // default comparison using equals
     return deepEquals(actualFieldValue, expectedFieldValue);
   }
 
   private static ComparisonDifference expectedAndActualTypeDifference(Object actual, Object expected) {
-    String additionalInformation = format("actual and expected are considered different since the comparison enforces strict type check and expected type %s is not a subtype of actual type %s",
-                                          expected.getClass().getName(), actual.getClass().getName());
+    String additionalInformation = format(
+        "actual and expected are considered different since the comparison enforces strict type check and expected type %s is not a subtype of actual type %s",
+        expected.getClass().getName(), actual.getClass().getName());
     return rootComparisonDifference(actual, expected, additionalInformation);
   }
 

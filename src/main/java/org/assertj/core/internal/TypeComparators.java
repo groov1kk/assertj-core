@@ -12,8 +12,11 @@
  */
 package org.assertj.core.internal;
 
-import static java.lang.String.format;
-import static org.assertj.core.util.Strings.join;
+import org.assertj.core.util.ClassNameComparator;
+import org.assertj.core.util.DoubleComparator;
+import org.assertj.core.util.FloatComparator;
+import org.assertj.core.util.PathNaturalOrderComparator;
+import org.assertj.core.util.VisibleForTesting;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -21,14 +24,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Stream;
 
-import org.assertj.core.util.DoubleComparator;
-import org.assertj.core.util.FloatComparator;
-import org.assertj.core.util.PathNaturalOrderComparator;
-import org.assertj.core.util.VisibleForTesting;
-import org.assertj.core.util.introspection.ClassUtils;
+import static java.lang.String.format;
+import static org.assertj.core.util.Strings.join;
+import static org.assertj.core.util.introspection.ClassUtils.getRelevantClass;
 
 /**
  * An internal holder of the comparators for type. It is used to store comparators for registered classes.
@@ -45,29 +47,21 @@ public class TypeComparators {
   private static final FloatComparator DEFAULT_FLOAT_COMPARATOR = new FloatComparator(FLOAT_COMPARATOR_PRECISION);
 
   private static final Comparator<Path> DEFAULT_PATH_COMPARATOR = PathNaturalOrderComparator.INSTANCE;
-
-  // don't convert it to a lambda as it degrades TypeComparatorsPerfTest execution time by ~66%
-  private static final Comparator<Class<?>> CLASS_COMPARATOR = new Comparator<Class<?>>() {
-
-    @Override
-    public int compare(Class<?> class1, Class<?> class2) {
-      return class1.getName().compareTo(class2.getName());
-    }
-  };
+  private static final Comparator<Class<?>> DEFAULT_CLASS_COMPARATOR = ClassNameComparator.INSTANCE;
 
   @VisibleForTesting
   Map<Class<?>, Comparator<?>> typeComparators;
 
   public static TypeComparators defaultTypeComparators() {
     TypeComparators comparatorByType = new TypeComparators();
-    comparatorByType.put(Double.class, DEFAULT_DOUBLE_COMPARATOR);
-    comparatorByType.put(Float.class, DEFAULT_FLOAT_COMPARATOR);
-    comparatorByType.put(Path.class, DEFAULT_PATH_COMPARATOR);
+    comparatorByType.registerComparator(Double.class, DEFAULT_DOUBLE_COMPARATOR);
+    comparatorByType.registerComparator(Float.class, DEFAULT_FLOAT_COMPARATOR);
+    comparatorByType.registerComparator(Path.class, DEFAULT_PATH_COMPARATOR);
     return comparatorByType;
   }
 
   public TypeComparators() {
-    typeComparators = new TreeMap<>(CLASS_COMPARATOR);
+    typeComparators = new TreeMap<>(DEFAULT_CLASS_COMPARATOR);
   }
 
   /**
@@ -81,35 +75,29 @@ public class TypeComparators {
    * @param clazz the class for which to find a comparator
    * @return the most relevant comparator, or {@code null} if no comparator could be found
    */
-  public Comparator<?> get(Class<?> clazz) {
-    Comparator<?> comparator = typeComparators.get(clazz);
-    if (comparator == null) {
-      for (Class<?> superClass : ClassUtils.getAllSuperclasses(clazz)) {
-        if (typeComparators.containsKey(superClass)) {
-          return typeComparators.get(superClass);
-        }
-      }
-      for (Class<?> interfaceClass : ClassUtils.getAllInterfaces(clazz)) {
-        if (typeComparators.containsKey(interfaceClass)) {
-          return typeComparators.get(interfaceClass);
-        }
-      }
-    }
-    return comparator;
+  public Comparator<?> getComparatorForType(Class<?> clazz) {
+    Class<?> relevantType = getRelevantClass(clazz, typeComparators.keySet());
+    return relevantType == null ? null : typeComparators.get(relevantType);
   }
 
+  /**
+   * Checks, whether an any custom comparator is associated with the giving type.
+   *
+   * @param type the type for which to check a comparator
+   * @return is the giving type associated with any custom comparator
+   */
   public boolean hasComparatorForType(Class<?> type) {
-    return get(type) != null;
+    return getComparatorForType(type) != null;
   }
 
   /**
    * Puts the {@code comparator} for the given {@code clazz}.
    *
    * @param clazz the class for the comparator
-   * @param comparator the comparator it self
+   * @param comparator the comparator itself
    * @param <T> the type of the objects for the comparator
    */
-  public <T> void put(Class<T> clazz, Comparator<? super T> comparator) {
+  public <T> void registerComparator(Class<T> clazz, Comparator<? super T> comparator) {
     typeComparators.put(clazz, comparator);
   }
 
@@ -138,8 +126,7 @@ public class TypeComparators {
 
   @Override
   public boolean equals(Object obj) {
-    return obj instanceof TypeComparators
-           && java.util.Objects.equals(typeComparators, ((TypeComparators) obj).typeComparators);
+    return obj instanceof TypeComparators && Objects.equals(typeComparators, ((TypeComparators) obj).typeComparators);
   }
 
   @Override
