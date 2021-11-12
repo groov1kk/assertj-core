@@ -12,19 +12,19 @@
  */
 package org.assertj.core.api.recursive.comparison;
 
-import org.assertj.core.configuration.ConfigurationProvider;
-import org.assertj.core.internal.UnambiguousRepresentation;
-import org.assertj.core.presentation.Representation;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.recursive.comparison.DualValue.rootDualValue;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
+import org.assertj.core.configuration.ConfigurationProvider;
+import org.assertj.core.internal.UnambiguousRepresentation;
+import org.assertj.core.presentation.Representation;
 
 public class ComparisonDifference implements Comparable<ComparisonDifference> {
 

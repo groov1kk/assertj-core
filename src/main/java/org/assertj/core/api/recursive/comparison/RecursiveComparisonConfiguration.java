@@ -12,26 +12,6 @@
  */
 package org.assertj.core.api.recursive.comparison;
 
-import org.assertj.core.api.RecursiveComparisonAssert;
-import org.assertj.core.internal.Objects;
-import org.assertj.core.internal.TypeComparators;
-import org.assertj.core.internal.TypeMessages;
-import org.assertj.core.presentation.Representation;
-import org.assertj.core.util.Strings;
-import org.assertj.core.util.VisibleForTesting;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.function.BiPredicate;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
-
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
@@ -45,6 +25,26 @@ import static org.assertj.core.util.Lists.list;
 import static org.assertj.core.util.Sets.newLinkedHashSet;
 import static org.assertj.core.util.Strings.formatIfArgs;
 import static org.assertj.core.util.introspection.PropertyOrFieldSupport.COMPARISON;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+
+import org.assertj.core.api.RecursiveComparisonAssert;
+import org.assertj.core.internal.Objects;
+import org.assertj.core.internal.TypeComparators;
+import org.assertj.core.internal.TypeMessages;
+import org.assertj.core.presentation.Representation;
+import org.assertj.core.util.Strings;
+import org.assertj.core.util.VisibleForTesting;
 
 public class RecursiveComparisonConfiguration {
 

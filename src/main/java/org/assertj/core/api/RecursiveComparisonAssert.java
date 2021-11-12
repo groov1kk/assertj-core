@@ -12,13 +12,8 @@
  */
 package org.assertj.core.api;
 
-import org.assertj.core.api.recursive.comparison.ComparisonDifference;
-import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
-import org.assertj.core.api.recursive.comparison.RecursiveComparisonDifferenceCalculator;
-import org.assertj.core.internal.Failures;
-import org.assertj.core.internal.TypeComparators;
-import org.assertj.core.util.CheckReturnValue;
-import org.assertj.core.util.introspection.IntrospectionError;
+import static org.assertj.core.error.ShouldBeEqualByComparingFieldByFieldRecursively.shouldBeEqualByComparingFieldByFieldRecursively;
+import static org.assertj.core.error.ShouldNotBeEqualComparingFieldByFieldRecursively.shouldNotBeEqualComparingFieldByFieldRecursively;
 
 import java.util.Comparator;
 import java.util.List;
@@ -29,8 +24,12 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.function.BiPredicate;
 
-import static org.assertj.core.error.ShouldBeEqualByComparingFieldByFieldRecursively.shouldBeEqualByComparingFieldByFieldRecursively;
-import static org.assertj.core.error.ShouldNotBeEqualComparingFieldByFieldRecursively.shouldNotBeEqualComparingFieldByFieldRecursively;
+import org.assertj.core.api.recursive.comparison.ComparisonDifference;
+import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
+import org.assertj.core.api.recursive.comparison.RecursiveComparisonDifferenceCalculator;
+import org.assertj.core.internal.TypeComparators;
+import org.assertj.core.util.CheckReturnValue;
+import org.assertj.core.util.introspection.IntrospectionError;
 
 public class RecursiveComparisonAssert<SELF extends RecursiveComparisonAssert<SELF>>
     extends AbstractAssert<SELF, Object> {

@@ -12,6 +12,9 @@
  */
 package org.assertj.core.api.recursive.comparison;
 
+import static java.lang.String.format;
+import static org.assertj.core.util.Strings.join;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -19,9 +22,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Stream;
-
-import static java.lang.String.format;
-import static org.assertj.core.util.Strings.join;
 
 /**
  * An internal holder of the custom messages for fields described by their path without element index.

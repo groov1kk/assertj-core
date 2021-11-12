@@ -12,7 +12,8 @@
  */
 package org.assertj.core.api.recursive.comparison;
 
-import org.assertj.core.util.VisibleForTesting;
+import static java.lang.String.format;
+import static org.assertj.core.util.Strings.join;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -23,8 +24,7 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Stream;
 
-import static java.lang.String.format;
-import static org.assertj.core.util.Strings.join;
+import org.assertj.core.util.VisibleForTesting;
 
 /**
  * An internal holder of the comparators for fields described by their path without element index.

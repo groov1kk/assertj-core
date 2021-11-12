@@ -12,7 +12,20 @@
  */
 package org.assertj.core.api.recursive.comparison;
 
-import org.assertj.core.internal.DeepDifference;
+import static java.lang.String.format;
+import static java.util.Objects.deepEquals;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toMap;
+import static org.assertj.core.api.recursive.comparison.ComparisonDifference.rootComparisonDifference;
+import static org.assertj.core.api.recursive.comparison.DualValue.DEFAULT_ORDERED_COLLECTION_TYPES;
+import static org.assertj.core.api.recursive.comparison.FieldLocation.rootFieldLocation;
+import static org.assertj.core.internal.Objects.getDeclaredFieldsIncludingInherited;
+import static org.assertj.core.internal.Objects.getFieldsNames;
+import static org.assertj.core.util.IterableUtil.sizeOf;
+import static org.assertj.core.util.IterableUtil.toCollection;
+import static org.assertj.core.util.Lists.list;
+import static org.assertj.core.util.Sets.newHashSet;
+import static org.assertj.core.util.introspection.PropertyOrFieldSupport.COMPARISON;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -30,20 +43,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-import static java.lang.String.format;
-import static java.util.Objects.deepEquals;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toMap;
-import static org.assertj.core.api.recursive.comparison.ComparisonDifference.rootComparisonDifference;
-import static org.assertj.core.api.recursive.comparison.DualValue.DEFAULT_ORDERED_COLLECTION_TYPES;
-import static org.assertj.core.api.recursive.comparison.FieldLocation.rootFieldLocation;
-import static org.assertj.core.internal.Objects.getDeclaredFieldsIncludingInherited;
-import static org.assertj.core.internal.Objects.getFieldsNames;
-import static org.assertj.core.util.IterableUtil.sizeOf;
-import static org.assertj.core.util.IterableUtil.toCollection;
-import static org.assertj.core.util.Lists.list;
-import static org.assertj.core.util.Sets.newHashSet;
-import static org.assertj.core.util.introspection.PropertyOrFieldSupport.COMPARISON;
+import org.assertj.core.internal.DeepDifference;
 
 /**
  * Based on {@link DeepDifference} but takes a {@link RecursiveComparisonConfiguration}, {@link DeepDifference}
