@@ -12,16 +12,16 @@
  */
 package org.assertj.core.api.recursive.comparison;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.api.BDDSoftAssertions.thenSoftly;
 import static org.assertj.core.util.Lists.list;
+
+import java.util.List;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class RecursiveComparisonConfiguration_typeMessages_Test {
 

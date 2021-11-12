@@ -12,18 +12,18 @@
  */
 package org.assertj.core.api.recursive.comparison;
 
-import org.assertj.core.api.RecursiveComparisonAssert_isEqualTo_BaseTest;
-import org.assertj.core.internal.objects.data.Person;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.OptionalInt;
-
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.util.AssertionsUtil.expectAssertionError;
 import static org.assertj.core.util.Lists.list;
+
+import java.util.List;
+import java.util.OptionalInt;
+
+import org.assertj.core.api.RecursiveComparisonAssert_isEqualTo_BaseTest;
+import org.assertj.core.internal.objects.data.Person;
+import org.junit.jupiter.api.Test;
 
 class RecursiveComparisonAssert_isEqualTo_withErrorMessageForType_Test extends
     RecursiveComparisonAssert_isEqualTo_BaseTest {

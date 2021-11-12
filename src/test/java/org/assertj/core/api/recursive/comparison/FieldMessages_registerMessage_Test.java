@@ -12,10 +12,10 @@
  */
 package org.assertj.core.api.recursive.comparison;
 
+import static org.assertj.core.api.BDDSoftAssertions.thenSoftly;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.BDDSoftAssertions.thenSoftly;
 
 class FieldMessages_registerMessage_Test {
 

@@ -12,20 +12,20 @@
  */
 package org.assertj.core.api.recursive.comparison;
 
-import org.apache.commons.lang3.RandomUtils;
-import org.assertj.core.test.AlwaysEqualComparator;
-import org.junit.jupiter.api.Test;
+import static java.lang.String.format;
+import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.BDDAssertions.then;
+import static org.assertj.core.test.AlwaysEqualComparator.alwaysEqual;
+import static org.assertj.core.util.Lists.list;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.regex.Pattern;
 
-import static java.lang.String.format;
-import static org.assertj.core.api.Assertions.catchThrowable;
-import static org.assertj.core.api.BDDAssertions.then;
-import static org.assertj.core.test.AlwaysEqualComparator.alwaysEqual;
-import static org.assertj.core.util.Lists.list;
+import org.apache.commons.lang3.RandomUtils;
+import org.assertj.core.test.AlwaysEqualComparator;
+import org.junit.jupiter.api.Test;
 
 class RecursiveComparisonConfiguration_builder_Test {
 
