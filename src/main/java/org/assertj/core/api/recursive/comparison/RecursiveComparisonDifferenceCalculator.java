@@ -234,7 +234,7 @@ public class RecursiveComparisonDifferenceCalculator {
         continue;
       }
 
-      if (actualFieldValue == expectedFieldValue) {continue;}
+      if (actualFieldValue == expectedFieldValue) continue;
 
       if (actualFieldValue == null || expectedFieldValue == null) {
         // one of the value is null while the other is not as we already know that actualFieldValue != expectedFieldValue
@@ -285,7 +285,7 @@ public class RecursiveComparisonDifferenceCalculator {
       }
 
       if (shouldCompareDualValue(recursiveComparisonConfiguration, dualValue)) {
-        if (!actualFieldValue.equals(expectedFieldValue)) {comparisonState.addDifference(dualValue);}
+        if (!actualFieldValue.equals(expectedFieldValue)) comparisonState.addDifference(dualValue);
         continue;
       }
 
@@ -344,7 +344,7 @@ public class RecursiveComparisonDifferenceCalculator {
                                      RecursiveComparisonConfiguration recursiveComparisonConfiguration) {
     if (recursiveComparisonConfiguration.isInStrictTypeCheckingMode()) {
       // we can use == for comparison which checks both actual and expected values and types are the same
-      if (dualValue.actual != dualValue.expected) {comparisonState.addDifference(dualValue);}
+      if (dualValue.actual != dualValue.expected) comparisonState.addDifference(dualValue);
       return;
     }
     if (!dualValue.isActualAnEnum()) {
@@ -355,7 +355,7 @@ public class RecursiveComparisonDifferenceCalculator {
     Enum<?> actualEnum = (Enum<?>) dualValue.actual;
     Enum<?> expectedEnum = (Enum<?>) dualValue.expected;
     // we must only compare actual and expected enum by value but not by type
-    if (!actualEnum.name().equals(expectedEnum.name())) {comparisonState.addDifference(dualValue);}
+    if (!actualEnum.name().equals(expectedEnum.name())) comparisonState.addDifference(dualValue);
   }
 
   private static boolean shouldHonorOverriddenEquals(DualValue dualValue,
@@ -468,7 +468,7 @@ public class RecursiveComparisonDifferenceCalculator {
           break;
         }
       }
-      if (!actualElementMatched) {unmatchedActualElements.add(actualElement);}
+      if (!actualElementMatched) unmatchedActualElements.add(actualElement);
     }
 
     if (!unmatchedActualElements.isEmpty()) {
@@ -580,9 +580,7 @@ public class RecursiveComparisonDifferenceCalculator {
       return;
     }
     // either both are empty or present
-    if (!actual.isPresent()) {
-      return; // both optional are empty => end of the comparison
-    }
+    if (!actual.isPresent()) return; // both optional are empty => end of the comparison
     // both are present, we have to compare their values recursively
     Object value1 = actual.get();
     Object value2 = expected.get();
@@ -725,11 +723,11 @@ public class RecursiveComparisonDifferenceCalculator {
     final Object expectedFieldValue = dualValue.expected;
     // check field comparators as they take precedence over type comparators
     Comparator fieldComparator = recursiveComparisonConfiguration.getComparatorForField(fieldName);
-    if (fieldComparator != null) {return fieldComparator.compare(actualFieldValue, expectedFieldValue) == 0;}
+    if (fieldComparator != null) return fieldComparator.compare(actualFieldValue, expectedFieldValue) == 0;
     // check if a type comparators exist for the field type
     Class fieldType = actualFieldValue != null ? actualFieldValue.getClass() : expectedFieldValue.getClass();
     Comparator typeComparator = recursiveComparisonConfiguration.getComparatorForType(fieldType);
-    if (typeComparator != null) {return typeComparator.compare(actualFieldValue, expectedFieldValue) == 0;}
+    if (typeComparator != null) return typeComparator.compare(actualFieldValue, expectedFieldValue) == 0;
     // default comparison using equals
     return deepEquals(actualFieldValue, expectedFieldValue);
   }

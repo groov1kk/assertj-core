@@ -268,14 +268,14 @@ public class RecursiveComparisonConfiguration {
   }
 
   private static Class<?> asWrapperIfPrimitiveType(Class<?> type) {
-    if (!type.isPrimitive()) {return type;}
-    if (type.equals(boolean.class)) {return Boolean.class;}
-    if (type.equals(byte.class)) {return Byte.class;}
-    if (type.equals(int.class)) {return Integer.class;}
-    if (type.equals(short.class)) {return Short.class;}
-    if (type.equals(char.class)) {return Character.class;}
-    if (type.equals(float.class)) {return Float.class;}
-    if (type.equals(double.class)) {return Double.class;}
+    if (!type.isPrimitive()) return type;
+    if (type.equals(boolean.class)) return Boolean.class;
+    if (type.equals(byte.class)) return Byte.class;
+    if (type.equals(int.class)) return Integer.class;
+    if (type.equals(short.class)) return Short.class;
+    if (type.equals(char.class)) return Character.class;
+    if (type.equals(float.class)) return Float.class;
+    if (type.equals(double.class)) return Double.class;
     // should not arrive here since we have tested primitive types first
     return type;
   }
@@ -648,9 +648,9 @@ public class RecursiveComparisonConfiguration {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj) {return true;}
-    if (obj == null) {return false;}
-    if (getClass() != obj.getClass()) {return false;}
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
     RecursiveComparisonConfiguration other = (RecursiveComparisonConfiguration) obj;
     return java.util.Objects.equals(fieldComparators, other.fieldComparators)
            && ignoreAllActualEmptyOptionalFields == other.ignoreAllActualEmptyOptionalFields
@@ -706,7 +706,7 @@ public class RecursiveComparisonConfiguration {
 
   private boolean shouldBeCompared(FieldLocation fieldLocation) {
     // empty comparedFields <=> no restriction on compared fields <=> must be compared
-    if (comparedFields.isEmpty()) {return true;}
+    if (comparedFields.isEmpty()) return true;
     return comparedFields.stream().anyMatch(matchesComparedField(fieldLocation));
   }
 
@@ -766,8 +766,8 @@ public class RecursiveComparisonConfiguration {
 
   boolean hasCustomComparator(DualValue dualValue) {
     String fieldName = dualValue.getConcatenatedPath();
-    if (hasComparatorForField(fieldName)) {return true;}
-    if (dualValue.actual == null && dualValue.expected == null) {return false;}
+    if (hasComparatorForField(fieldName)) return true;
+    if (dualValue.actual == null && dualValue.expected == null) return false;
     // best effort assuming actual and expected have the same type (not 100% true as we can compare object of differennt types)
     Class<?> valueType = dualValue.actual != null ? dualValue.actual.getClass() : dualValue.expected.getClass();
     return hasComparatorForType(valueType);
@@ -775,9 +775,9 @@ public class RecursiveComparisonConfiguration {
 
   boolean shouldIgnoreOverriddenEqualsOf(DualValue dualValue) {
     // we must compare java basic types otherwise the recursive comparison loops infinitely!
-    if (dualValue.isActualJavaType()) {return false;}
+    if (dualValue.isActualJavaType()) return false;
     // enums don't have fields, comparing them field by field has no sense, we need to use equals which is overridden and final
-    if (dualValue.isActualAnEnum()) {return false;}
+    if (dualValue.isActualAnEnum()) return false;
     return ignoreAllOverriddenEquals
            || matchesAnIgnoredOverriddenEqualsField(dualValue.fieldLocation)
            || (dualValue.actual != null && shouldIgnoreOverriddenEqualsOf(dualValue.actual.getClass()));
@@ -901,9 +901,7 @@ public class RecursiveComparisonConfiguration {
   }
 
   private boolean matchesAnIgnoredOverriddenEqualsRegex(Class<?> clazz) {
-    if (ignoredOverriddenEqualsForFieldsMatchingRegexes.isEmpty()) {
-      return false; // shortcut
-    }
+    if (ignoredOverriddenEqualsForFieldsMatchingRegexes.isEmpty()) return false; // shortcut
     String canonicalName = clazz.getCanonicalName();
     return ignoredOverriddenEqualsForFieldsMatchingRegexes.stream()
                                                           .anyMatch(regex -> regex.matcher(canonicalName).matches());
@@ -934,11 +932,11 @@ public class RecursiveComparisonConfiguration {
 
   private boolean matchesAnIgnoredFieldType(DualValue dualValue) {
     Object actual = dualValue.actual;
-    if (actual != null) {return ignoredTypes.contains(actual.getClass());}
+    if (actual != null) return ignoredTypes.contains(actual.getClass());
     Object expected = dualValue.expected;
     // actual is null => we can't evaluate its type, we can only reliably check dualValue.expected's type if
     // strictTypeChecking is enabled which guarantees expected is of the same type.
-    if (strictTypeChecking && expected != null) {return ignoredTypes.contains(expected.getClass());}
+    if (strictTypeChecking && expected != null) return ignoredTypes.contains(expected.getClass());
     // if strictTypeChecking is disabled, we can't safely ignore the field (if we did, we would ignore all null fields!).
     return false;
   }
