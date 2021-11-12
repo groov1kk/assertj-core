@@ -12,11 +12,9 @@
  */
 package org.assertj.core.internal;
 
-import org.assertj.core.util.ClassNameComparator;
-import org.assertj.core.util.DoubleComparator;
-import org.assertj.core.util.FloatComparator;
-import org.assertj.core.util.PathNaturalOrderComparator;
-import org.assertj.core.util.VisibleForTesting;
+import static java.lang.String.format;
+import static org.assertj.core.util.Strings.join;
+import static org.assertj.core.util.introspection.ClassUtils.getRelevantClass;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -28,9 +26,11 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Stream;
 
-import static java.lang.String.format;
-import static org.assertj.core.util.Strings.join;
-import static org.assertj.core.util.introspection.ClassUtils.getRelevantClass;
+import org.assertj.core.util.ClassNameComparator;
+import org.assertj.core.util.DoubleComparator;
+import org.assertj.core.util.FloatComparator;
+import org.assertj.core.util.PathNaturalOrderComparator;
+import org.assertj.core.util.VisibleForTesting;
 
 /**
  * An internal holder of the comparators for type. It is used to store comparators for registered classes.

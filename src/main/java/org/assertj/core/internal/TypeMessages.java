@@ -12,7 +12,9 @@
  */
 package org.assertj.core.internal;
 
-import org.assertj.core.util.ClassNameComparator;
+import static java.lang.String.format;
+import static org.assertj.core.util.Strings.join;
+import static org.assertj.core.util.introspection.ClassUtils.getRelevantClass;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -22,9 +24,7 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Stream;
 
-import static java.lang.String.format;
-import static org.assertj.core.util.Strings.join;
-import static org.assertj.core.util.introspection.ClassUtils.getRelevantClass;
+import org.assertj.core.util.ClassNameComparator;
 
 /**
  * An internal holder of the custom message for type. It is used to store messages for registered classes.
