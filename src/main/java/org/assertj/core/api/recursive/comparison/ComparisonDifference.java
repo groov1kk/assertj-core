@@ -124,10 +124,8 @@ public class ComparisonDifference implements Comparable<ComparisonDifference> {
 
   // returns a user-friendly path description
   protected String fieldPathDescription() {
-    if (concatenatedPath.isEmpty()) {return TOP_LEVEL_OBJECTS;}
-    if (concatenatedPath.matches(TOP_LEVEL_ELEMENT_PATTERN)) {
-      return format(TOP_LEVEL_ELEMENTS, extractIndex(concatenatedPath));
-    }
+    if (concatenatedPath.isEmpty()) return TOP_LEVEL_OBJECTS;
+    if (concatenatedPath.matches(TOP_LEVEL_ELEMENT_PATTERN)) return format(TOP_LEVEL_ELEMENTS, extractIndex(concatenatedPath));
     return format(FIELD, concatenatedPath);
   }
 

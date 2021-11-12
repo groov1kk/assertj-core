@@ -41,8 +41,7 @@ public class RecursiveComparisonAssert<SELF extends RecursiveComparisonAssert<SE
   public RecursiveComparisonAssert(Object actual, RecursiveComparisonConfiguration recursiveComparisonConfiguration) {
     super(actual, RecursiveComparisonAssert.class);
     this.recursiveComparisonConfiguration = recursiveComparisonConfiguration;
-    recursiveComparisonDifferenceCalculator = new RecursiveComparisonDifferenceCalculator();
-    Failures.instance();
+    this.recursiveComparisonDifferenceCalculator = new RecursiveComparisonDifferenceCalculator();
   }
 
   void setRecursiveComparisonConfiguration(RecursiveComparisonConfiguration recursiveComparisonConfiguration) {
@@ -149,7 +148,7 @@ public class RecursiveComparisonAssert<SELF extends RecursiveComparisonAssert<SE
   @Override
   public SELF isEqualTo(Object expected) {
     // deals with both actual and expected being null
-    if (actual == expected) {return myself;}
+    if (actual == expected) return myself;
     if (expected == null) {
       // for the assertion to pass, actual must be null but this is not the case since actual != expected
       // => we fail expecting actual to be null
@@ -159,13 +158,11 @@ public class RecursiveComparisonAssert<SELF extends RecursiveComparisonAssert<SE
     objects.assertNotNull(info, actual);
     // at this point both actual and expected are not null, we can compare them recursively!
     List<ComparisonDifference> differences = determineDifferencesWith(expected);
-    if (!differences.isEmpty()) {
-      throw objects.getFailures().failure(info, shouldBeEqualByComparingFieldByFieldRecursively(actual,
+    if (!differences.isEmpty()) throw objects.getFailures().failure(info, shouldBeEqualByComparingFieldByFieldRecursively(actual,
                                                                                                 expected,
                                                                                                 differences,
                                                                                                 recursiveComparisonConfiguration,
                                                                                                 info.representation()));
-    }
     return myself;
   }
 
