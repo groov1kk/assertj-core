@@ -31,8 +31,7 @@ import org.assertj.core.internal.TypeComparators;
 import org.assertj.core.util.CheckReturnValue;
 import org.assertj.core.util.introspection.IntrospectionError;
 
-public class RecursiveComparisonAssert<SELF extends RecursiveComparisonAssert<SELF>>
-    extends AbstractAssert<SELF, Object> {
+public class RecursiveComparisonAssert<SELF extends RecursiveComparisonAssert<SELF>> extends AbstractAssert<SELF, Object> {
 
   private RecursiveComparisonConfiguration recursiveComparisonConfiguration;
   private RecursiveComparisonDifferenceCalculator recursiveComparisonDifferenceCalculator;
@@ -158,10 +157,10 @@ public class RecursiveComparisonAssert<SELF extends RecursiveComparisonAssert<SE
     // at this point both actual and expected are not null, we can compare them recursively!
     List<ComparisonDifference> differences = determineDifferencesWith(expected);
     if (!differences.isEmpty()) throw objects.getFailures().failure(info, shouldBeEqualByComparingFieldByFieldRecursively(actual,
-                                                                                                expected,
-                                                                                                differences,
-                                                                                                recursiveComparisonConfiguration,
-                                                                                                info.representation()));
+                                                                                                                          expected,
+                                                                                                                          differences,
+                                                                                                                          recursiveComparisonConfiguration,
+                                                                                                                          info.representation()));
     return myself;
   }
 
@@ -204,21 +203,15 @@ public class RecursiveComparisonAssert<SELF extends RecursiveComparisonAssert<SE
    */
   @Override
   public SELF isNotEqualTo(Object other) {
-    if (actual == other) {
-      throw objects.getFailures().failure(info,
-                                          shouldNotBeEqualComparingFieldByFieldRecursively(actual,
-                                                                                           other,
-                                                                                           recursiveComparisonConfiguration,
-                                                                                           info.representation()));
-    }
+    if (actual == other) throw objects.getFailures().failure(info, shouldNotBeEqualComparingFieldByFieldRecursively(actual, other,
+                                                                                                                    recursiveComparisonConfiguration,
+                                                                                                                    info.representation()));
     if (other != null && actual != null) {
       List<ComparisonDifference> differences = determineDifferencesWith(other);
-      if (differences.isEmpty()) {
-        throw objects.getFailures().failure(info,
-                                            shouldNotBeEqualComparingFieldByFieldRecursively(actual, other,
-                                                                                             recursiveComparisonConfiguration,
-                                                                                             info.representation()));
-      }
+      if (differences.isEmpty())
+        throw objects.getFailures().failure(info, shouldNotBeEqualComparingFieldByFieldRecursively(actual, other,
+                                                                                                   recursiveComparisonConfiguration,
+                                                                                                   info.representation()));
     }
     // either one of actual or other was null (but not both) or there were no differences
     return myself;
@@ -1425,8 +1418,6 @@ public class RecursiveComparisonAssert<SELF extends RecursiveComparisonAssert<SE
   }
 
   private List<ComparisonDifference> determineDifferencesWith(Object expected) {
-    return recursiveComparisonDifferenceCalculator.determineDifferences(actual, expected,
-                                                                        recursiveComparisonConfiguration);
+    return recursiveComparisonDifferenceCalculator.determineDifferences(actual, expected, recursiveComparisonConfiguration);
   }
-
 }

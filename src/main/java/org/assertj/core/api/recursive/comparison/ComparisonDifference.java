@@ -62,10 +62,7 @@ public class ComparisonDifference implements Comparable<ComparisonDifference> {
     this(dualValue.getDecomposedPath(), dualValue.actual, dualValue.expected, additionalInformation, template);
   }
 
-  private ComparisonDifference(List<String> decomposedPath,
-                               Object actual,
-                               Object other,
-                               String additionalInformation,
+  private ComparisonDifference(List<String> decomposedPath, Object actual, Object other, String additionalInformation,
                                String template) {
     this.decomposedPath = unmodifiableList(requireNonNull(decomposedPath, "a path can't be null"));
     this.concatenatedPath = toConcatenatedPath(decomposedPath);
@@ -75,8 +72,7 @@ public class ComparisonDifference implements Comparable<ComparisonDifference> {
     this.template = template != null ? template : DEFAULT_TEMPLATE;
   }
 
-  public static ComparisonDifference rootComparisonDifference(Object actual, Object other,
-                                                              String additionalInformation) {
+  public static ComparisonDifference rootComparisonDifference(Object actual, Object other, String additionalInformation) {
     return new ComparisonDifference(rootDualValue(actual, other), additionalInformation);
   }
 
@@ -111,10 +107,8 @@ public class ComparisonDifference implements Comparable<ComparisonDifference> {
   }
 
   public String multiLineDescription(Representation representation) {
-    UnambiguousRepresentation unambiguousRepresentation = new UnambiguousRepresentation(representation, actual,
-                                                                                        expected);
-    String additionalInfo = additionalInformation.map(ComparisonDifference::formatOnNewline)
-                                                 .orElse("");
+    UnambiguousRepresentation unambiguousRepresentation = new UnambiguousRepresentation(representation, actual, expected);
+    String additionalInfo = additionalInformation.map(ComparisonDifference::formatOnNewline).orElse("");
     return format(getTemplate(),
                   fieldPathDescription(),
                   unambiguousRepresentation.getActual(),
