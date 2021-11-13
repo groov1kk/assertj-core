@@ -726,8 +726,7 @@ public class RecursiveComparisonConfiguration {
     // DualValues are built introspecting fields which is expensive.
     return actualFieldsNames.stream()
                             // evaluate field name ignoring criteria on dualValue field location + field name
-                            .filter(fieldName -> !shouldIgnoreFieldBasedOnFieldLocation(
-                                dualValue.fieldLocation.field(fieldName)))
+                            .filter(fieldName -> !shouldIgnoreFieldBasedOnFieldLocation(dualValue.fieldLocation.field(fieldName)))
                             .map(fieldName -> dualValueForField(dualValue, fieldName))
                             // evaluate field value ignoring criteria
                             .filter(fieldDualValue -> !shouldIgnoreFieldBasedOnFieldValue(fieldDualValue))
@@ -795,49 +794,39 @@ public class RecursiveComparisonConfiguration {
   }
 
   private void describeIgnoredFieldsRegexes(StringBuilder description) {
-    if (!ignoredFieldsRegexes.isEmpty()) {
+    if (!ignoredFieldsRegexes.isEmpty())
       description.append(format("- the fields matching the following regexes were ignored in the comparison: %s%n",
                                 describeRegexes(ignoredFieldsRegexes)));
-    }
+
   }
 
   private void describeIgnoredFields(StringBuilder description) {
-    if (!ignoredFields.isEmpty()) {
-      description.append(
-          format("- the following fields were ignored in the comparison: %s%n", describeIgnoredFields()));
-    }
+    if (!ignoredFields.isEmpty())
+      description.append(format("- the following fields were ignored in the comparison: %s%n", describeIgnoredFields()));
   }
 
   private void describeComparedFields(StringBuilder description) {
-    if (!comparedFields.isEmpty()) {
-      description.append(
-          format("- the comparison was performed on the following fields: %s%n", describeComparedFields()));
-    }
+    if (!comparedFields.isEmpty())
+      description.append(format("- the comparison was performed on the following fields: %s%n", describeComparedFields()));
   }
 
   private void describeIgnoredFieldsForTypes(StringBuilder description) {
-    if (!ignoredTypes.isEmpty()) {
+    if (!ignoredTypes.isEmpty())
       description.append(format("- the following types were ignored in the comparison: %s%n", describeIgnoredTypes()));
-    }
   }
 
   private void describeIgnoreAllActualNullFields(StringBuilder description) {
-    if (ignoreAllActualNullFields) {
-      description.append(format("- all actual null fields were ignored in the comparison%n"));
-    }
+    if (ignoreAllActualNullFields) description.append(format("- all actual null fields were ignored in the comparison%n"));
   }
 
   private void describeIgnoreAllActualEmptyOptionalFields(StringBuilder description) {
-    if (getIgnoreAllActualEmptyOptionalFields()) {
+    if (getIgnoreAllActualEmptyOptionalFields())
       description.append(format(
           "- all actual empty optional fields were ignored in the comparison (including Optional, OptionalInt, OptionalLong and OptionalDouble)%n"));
-    }
   }
 
   private void describeIgnoreAllExpectedNullFields(StringBuilder description) {
-    if (ignoreAllExpectedNullFields) {
-      description.append(format("- all expected null fields were ignored in the comparison%n"));
-    }
+    if (ignoreAllExpectedNullFields) description.append(format("- all expected null fields were ignored in the comparison%n"));
   }
 
   private void describeOverriddenEqualsMethodsUsage(StringBuilder description, Representation representation) {
@@ -854,18 +843,15 @@ public class RecursiveComparisonConfiguration {
   }
 
   private void describeIgnoredOverriddenEqualsMethods(StringBuilder description, Representation representation) {
-    if (!ignoredOverriddenEqualsForFields.isEmpty()) {
+    if (!ignoredOverriddenEqualsForFields.isEmpty())
       description.append(format("%s the following fields: %s%n", INDENT_LEVEL_2,
                                 describeIgnoredOverriddenEqualsForFields()));
-    }
-    if (!ignoredOverriddenEqualsForTypes.isEmpty()) {
+    if (!ignoredOverriddenEqualsForTypes.isEmpty())
       description.append(format("%s the following types: %s%n", INDENT_LEVEL_2,
                                 describeIgnoredOverriddenEqualsForTypes(representation)));
-    }
-    if (!ignoredOverriddenEqualsForFieldsMatchingRegexes.isEmpty()) {
+    if (!ignoredOverriddenEqualsForFieldsMatchingRegexes.isEmpty())
       description.append(format("%s the types matching the following regexes: %s%n", INDENT_LEVEL_2,
                                 describeRegexes(ignoredOverriddenEqualsForFieldsMatchingRegexes)));
-    }
   }
 
   private String describeIgnoredOverriddenEqualsForTypes(Representation representation) {
@@ -880,31 +866,26 @@ public class RecursiveComparisonConfiguration {
   }
 
   private void describeIgnoreCollectionOrder(StringBuilder description) {
-    if (ignoreCollectionOrder) {
-      description.append(format("- collection order was ignored in all fields in the comparison%n"));
-    }
+    if (ignoreCollectionOrder) description.append(format("- collection order was ignored in all fields in the comparison%n"));
   }
 
   private void describeIgnoredCollectionOrderInFields(StringBuilder description) {
-    if (!ignoredCollectionOrderInFields.isEmpty()) {
+    if (!ignoredCollectionOrderInFields.isEmpty())
       description.append(format("- collection order was ignored in the following fields in the comparison: %s%n",
                                 describeIgnoredCollectionOrderInFields()));
-    }
   }
 
   private void describeIgnoredCollectionOrderInFieldsMatchingRegexes(StringBuilder description) {
-    if (!ignoredCollectionOrderInFieldsMatchingRegexes.isEmpty()) {
+    if (!ignoredCollectionOrderInFieldsMatchingRegexes.isEmpty())
       description.append(
           format("- collection order was ignored in the fields matching the following regexes in the comparison: %s%n",
                  describeRegexes(ignoredCollectionOrderInFieldsMatchingRegexes)));
-    }
   }
 
   private boolean matchesAnIgnoredOverriddenEqualsRegex(Class<?> clazz) {
     if (ignoredOverriddenEqualsForFieldsMatchingRegexes.isEmpty()) return false; // shortcut
     String canonicalName = clazz.getCanonicalName();
-    return ignoredOverriddenEqualsForFieldsMatchingRegexes.stream()
-                                                          .anyMatch(regex -> regex.matcher(canonicalName).matches());
+    return ignoredOverriddenEqualsForFieldsMatchingRegexes.stream().anyMatch(regex -> regex.matcher(canonicalName).matches());
   }
 
   private boolean matchesAnIgnoredOverriddenEqualsType(Class<?> clazz) {
