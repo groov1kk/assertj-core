@@ -12,27 +12,13 @@
  */
 package org.assertj.core.api.recursive.comparison;
 
-import static java.lang.String.format;
-import static org.assertj.core.util.Strings.join;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.TreeMap;
 import java.util.stream.Stream;
 
 /**
  * An internal holder of the custom messages for fields described by their path without element index.
  */
-public class FieldMessages {
-
-  private final Map<String, String> fieldMessages;
-
-  public FieldMessages() {
-    fieldMessages = new TreeMap<>();
-  }
+public class FieldMessages extends FieldHolder<String> {
 
   /**
    * Pairs the giving error {@code message} with the {@code fieldLocation}.
@@ -41,48 +27,36 @@ public class FieldMessages {
    * @param message the error message
    */
   public void registerMessage(String fieldLocation, String message) {
-    fieldMessages.put(fieldLocation, message);
+    super.put(fieldLocation, message);
   }
 
   /**
-   * @return {@code true} is there are registered messages, {@code false} otherwise
+   * Checks, whether an any custom message is associated with the giving field location.
+   *
+   * @param fieldLocation the field location which association need to check
+   * @return is field location contain a custom message
    */
-  public boolean isEmpty() {
-    return fieldMessages.isEmpty();
-  }
-
-  @Override
-  public int hashCode() {
-    return fieldMessages.hashCode();
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    return obj instanceof FieldMessages && Objects.equals(fieldMessages, ((FieldMessages) obj).fieldMessages);
-  }
-
-  @Override
-  public String toString() {
-    List<String> registeredErrorMessages = new ArrayList<>();
-    for (Entry<String, String> entry : fieldMessages.entrySet()) {
-      registeredErrorMessages.add(formatRegisteredErrorMessage(entry));
-    }
-    return format("{%s}", join(registeredErrorMessages).with("%n"));
-  }
-
-  private String formatRegisteredErrorMessage(Entry<String, String> fieldMessage) {
-    return format("%s -> %s", fieldMessage.getKey(), fieldMessage.getValue());
-  }
-
   public boolean hasMessageForField(String fieldLocation) {
-    return fieldMessages.containsKey(fieldLocation);
+    return super.hasEntity(fieldLocation);
   }
 
+  /**
+   * Retrieves a custom message, which is associated with the giving field location. If this location does not
+   * associate with any custom message - this method returns null.
+   *
+   * @param fieldLocation the field location that has to be associated with a message
+   * @return a custom message or null
+   */
   public String getMessageForField(String fieldLocation) {
-    return fieldMessages.get(fieldLocation);
+    return super.get(fieldLocation);
   }
 
+  /**
+   * Returns a sequence of associated field-message pairs.
+   *
+   * @return sequence of field-message pairs
+   */
   public Stream<Entry<String, String>> messageByFields() {
-    return fieldMessages.entrySet().stream();
+    return super.entryByField();
   }
 }

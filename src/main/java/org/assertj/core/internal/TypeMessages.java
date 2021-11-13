@@ -12,33 +12,14 @@
  */
 package org.assertj.core.internal;
 
-import static java.lang.String.format;
-import static org.assertj.core.util.Strings.join;
-import static org.assertj.core.util.introspection.ClassUtils.getRelevantClass;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.TreeMap;
 import java.util.stream.Stream;
-
-import org.assertj.core.util.ClassNameComparator;
 
 /**
  * An internal holder of the custom message for type. It is used to store messages for registered classes.
  * When looking for a message for a given class the holder returns the most relevant comparator.
  */
-public class TypeMessages {
-
-  private static final Comparator<Class<?>> DEFAULT_CLASS_COMPARATOR = ClassNameComparator.INSTANCE;
-
-  private final Map<Class<?>, String> typeMessages;
-
-  public TypeMessages() {
-    typeMessages = new TreeMap<>(DEFAULT_CLASS_COMPARATOR);
-  }
+public class TypeMessages extends TypeHolder<String> {
 
   /**
    * This method returns the most relevant error message for the given class. The most relevant message is the
@@ -52,8 +33,7 @@ public class TypeMessages {
    * @return the most relevant error message, or {@code null} if no message could be found
    */
   public String getMessageForType(Class<?> clazz) {
-    Class<?> relevantType = getRelevantClass(clazz, typeMessages.keySet());
-    return relevantType == null ? null : typeMessages.get(relevantType);
+    return super.get(clazz);
   }
 
   /**
@@ -63,7 +43,7 @@ public class TypeMessages {
    * @return is the giving type associated with any custom error message
    */
   public boolean hasMessageForType(Class<?> type) {
-    return getMessageForType(type) != null;
+    return super.hasEntity(type);
   }
 
   /**
@@ -74,40 +54,15 @@ public class TypeMessages {
    * @param <T> the type of the objects to associate with the message for
    */
   public <T> void registerMessage(Class<T> clazz, String message) {
-    typeMessages.put(clazz, message);
+    super.put(clazz, message);
   }
 
   /**
-   * @return {@code true} is there are registered error messages, {@code false} otherwise
+   * Returns a sequence of all type-message pairs which the current holder supplies.
+   *
+   * @return sequence of field-message pairs
    */
-  public boolean isEmpty() {
-    return typeMessages.isEmpty();
-  }
-
   public Stream<Map.Entry<Class<?>, String>> messageByTypes() {
-    return typeMessages.entrySet().stream();
-  }
-
-  @Override
-  public int hashCode() {
-    return typeMessages.hashCode();
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    return obj instanceof TypeMessages && Objects.equals(typeMessages, ((TypeMessages) obj).typeMessages);
-  }
-
-  @Override
-  public String toString() {
-    List<String> registeredErrorMessages = new ArrayList<>();
-    for (Map.Entry<Class<?>, String> entry : typeMessages.entrySet()) {
-      registeredErrorMessages.add(formatRegisteredErrorMessage(entry));
-    }
-    return format("{%s}", join(registeredErrorMessages).with("%n"));
-  }
-
-  private String formatRegisteredErrorMessage(Map.Entry<Class<?>, String> fieldMessage) {
-    return format("%s -> %s", fieldMessage.getKey(), fieldMessage.getValue());
+    return super.entityByTypes();
   }
 }

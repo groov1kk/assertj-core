@@ -12,10 +12,7 @@
  */
 package org.assertj.core.util.introspection;
 
-import static java.util.Objects.requireNonNull;
-
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -57,9 +54,7 @@ public class ClassUtils {
    * @return the {@code List} of interfaces in order, {@code null} if null input
    */
   public static List<Class<?>> getAllInterfaces(Class<?> cls) {
-    if (cls == null) {
-      return null;
-    }
+    if (cls == null) return null;
 
     LinkedHashSet<Class<?>> interfacesFound = new LinkedHashSet<>();
     getAllInterfaces(cls, interfacesFound);
@@ -85,42 +80,5 @@ public class ClassUtils {
 
       cls = cls.getSuperclass();
     }
-  }
-
-  /**
-   * Returns the most relevant class for the given type from the giving collection of types.
-   * <p>
-   * The order of checks is the following:
-   * <ol>
-   * <li>If there is a registered message for {@code clazz} then this one is used</li>
-   * <li>We check if there is a registered message for a superclass of {@code clazz}</li>
-   * <li>We check if there is a registered message for an interface of {@code clazz}</li>
-   * </ol>
-   * If there is no relevant type in the giving collection - {@code null} will be returned.
-   *
-   * @param cls type to find a relevant class.
-   * @param collection collection of types where relevant type should be present.
-   * @return the most relevant class.
-   * @throws NullPointerException if collection is null.
-   */
-  public static Class<?> getRelevantClass(Class<?> cls, Collection<?> collection) {
-    requireNonNull(collection, "Expecting a non null collection");
-
-    if (collection.contains(cls)) {
-      return cls;
-    }
-
-    for (Class<?> superClass : getAllSuperclasses(cls)) {
-      if (collection.contains(superClass)) {
-        return superClass;
-      }
-    }
-
-    for (Class<?> interfaceClass : getAllInterfaces(cls)) {
-      if (collection.contains(interfaceClass)) {
-        return interfaceClass;
-      }
-    }
-    return null;
   }
 }
