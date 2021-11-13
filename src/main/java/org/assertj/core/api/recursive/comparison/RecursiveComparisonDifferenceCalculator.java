@@ -146,16 +146,15 @@ public class RecursiveComparisonDifferenceCalculator {
       // It occurs for unordered collection where we compare all possible combination of the collection elements recursively.
       // --
       // remove visited values one by one, DualValue.equals correctly compare respective actual and expected fields by reference
-      visitedDualValues.forEach(visitedDualValue -> dualValuesToCompare.stream().filter(
-                                                                           dualValueToCompare -> dualValueToCompare.equals(visitedDualValue))
+      visitedDualValues.forEach(visitedDualValue -> dualValuesToCompare.stream()
+                                                                       .filter(dualValueToCompare -> dualValueToCompare.equals(visitedDualValue))
                                                                        .findFirst()
                                                                        .ifPresent(dualValuesToCompare::remove));
     }
 
     private boolean mustCompareFieldsRecursively(boolean isRootObject, DualValue dualValue) {
-      boolean noCustomComparisonForDualValue =
-          !recursiveComparisonConfiguration.hasCustomComparator(dualValue) && !shouldHonorOverriddenEquals(dualValue,
-                                                                                                           recursiveComparisonConfiguration);
+      boolean noCustomComparisonForDualValue = !recursiveComparisonConfiguration.hasCustomComparator(dualValue)
+                                               && !shouldHonorOverriddenEquals(dualValue, recursiveComparisonConfiguration);
       return isRootObject || noCustomComparisonForDualValue;
     }
 
@@ -408,8 +407,8 @@ public class RecursiveComparisonDifferenceCalculator {
   }
 
   private static String differentTypeErrorMessage(DualValue dualValue, String actualTypeDescription) {
-    return format(DIFFERENT_ACTUAL_AND_EXPECTED_FIELD_TYPES, actualTypeDescription,
-                  dualValue.actual.getClass().getCanonicalName());
+    return format(DIFFERENT_ACTUAL_AND_EXPECTED_FIELD_TYPES,
+                  actualTypeDescription, dualValue.actual.getClass().getCanonicalName());
   }
 
   private static void compareUnorderedIterables(DualValue dualValue, ComparisonState comparisonState) {
@@ -473,8 +472,7 @@ public class RecursiveComparisonDifferenceCalculator {
     @SuppressWarnings("unchecked")
     Map<K, V> expectedMap = (Map<K, V>) dualValue.expected;
     if (actualMap.size() != expectedMap.size()) {
-      comparisonState.addDifference(dualValue,
-                                    format(DIFFERENT_SIZE_ERROR, "sorted maps", actualMap.size(), expectedMap.size()));
+      comparisonState.addDifference(dualValue, format(DIFFERENT_SIZE_ERROR, "sorted maps", actualMap.size(), expectedMap.size()));
       // no need to inspect entries, maps are not equal as they don't have the same size
       return;
       // TODO instead we could register the diff between expected and actual that is:
@@ -514,12 +512,13 @@ public class RecursiveComparisonDifferenceCalculator {
     }
 
     // index expected entries by their key deep hash code
-    Map<Integer, Map.Entry<?, ?>> expectedEntriesByDeepHashCode = expectedMap.entrySet().stream().collect(
-        toMap(entry -> deepHashCode(entry.getKey()), entry -> entry));
+    Map<Integer, Map.Entry<?, ?>> expectedEntriesByDeepHashCode = expectedMap.entrySet().stream()
+                                                                             .collect(toMap(entry -> deepHashCode(entry.getKey()),
+                                                                                            entry -> entry));
     // index actual keys by their deep hash code
     Map<?, Integer> actualDeepHashCodesByKey = actualMap.keySet().stream().collect(toMap(key -> key, key -> deepHashCode(key)));
-    Map<?, ?> unmatchedActualEntries = actualDeepHashCodesByKey.entrySet().stream().filter(
-                                                                   entry -> !expectedEntriesByDeepHashCode.containsKey(entry.getValue()))
+    Map<?, ?> unmatchedActualEntries = actualDeepHashCodesByKey.entrySet().stream()
+                                                               .filter(entry -> !expectedEntriesByDeepHashCode.containsKey(entry.getValue()))
                                                                // back to actual entries
                                                                .collect(toMap(entry -> entry.getKey(),
                                                                               entry -> actualMap.get(entry.getKey())));

@@ -932,8 +932,7 @@ public class RecursiveComparisonConfiguration {
 
   private boolean matchesAnIgnoredCollectionOrderInFieldRegex(FieldLocation fieldLocation) {
     String pathToUseInRules = fieldLocation.getPathToUseInRules();
-    return ignoredCollectionOrderInFieldsMatchingRegexes.stream()
-                                                        .anyMatch(regex -> regex.matcher(pathToUseInRules).matches());
+    return ignoredCollectionOrderInFieldsMatchingRegexes.stream().anyMatch(regex -> regex.matcher(pathToUseInRules).matches());
   }
 
   private String describeIgnoredFields() {
